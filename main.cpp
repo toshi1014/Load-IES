@@ -52,8 +52,7 @@ void split(std::string &line, std::string box[]){
 
 //  read first line
 void get_first_line(IES *ies, std::string &line){
-    int item = 10;
-    std::string box[item];
+    std::string box[10];
     split(line, box);
 
     ies->vertical_num = atoi(box[3].c_str());
@@ -112,6 +111,7 @@ int main() {
 
         //  get data on first line
         if (i == 1){
+
             get_first_line(&ies, line);
             get_line_length(&ies.vertical_num, &vertical_line_length);
             get_line_length(&ies.horizontal_num, &horizontal_line_length);
