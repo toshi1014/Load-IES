@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Users/toshi/Local_Document/C++/load_ies/main.cpp
+iostream
+-
+vector
+-
+algorithm
+-
+fstream
+C:/Users/toshi/Local_Document/C++/load_ies/fstream
+map
+C:/Users/toshi/Local_Document/C++/load_ies/map
+
