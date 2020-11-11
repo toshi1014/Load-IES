@@ -69,8 +69,37 @@ void config(IES *ies, std::vector<double> stock){
 }
 
 
+int get_adjacent(const std::vector<double> &vec, double d){
+    for (int i = 0; i < vec.size()-1; ++i) {
+        if ((vec.at(i) - d) * (vec.at(i+1) - d) < 0){
+            std::cout << "i = ";
+            return i;
+        }
+    }
+    return -1;
+}
+
+
+double interpolation(IES &ies, std::map<std::pair<double, double>, double> &vh_cd_map, double v, double h){
+    int v_adjacent = get_adjacent(ies.vertical_angle, v);
+    int h_adjacent = get_adjacent(ies.horizontal_angle, h);
+
+    if (v_adjacent == -1 || h_adjacent == -1){
+        std::cerr << "Out of range";
+        return -1;
+    }
+
+    double fst = vh_cd_map[std::make_pair(v_adjacent, h_adjacent)];
+    double snd = vh_cd_map[std::make_pair(v_adjacent + 1, h_adjacent)];
+    double thd = vh_cd_map[std::make_pair(v, h_adjacent + 1)];
+    double fou = vh_cd_map[std::make_pair(v_adjacent + 1, h_adjacent + 1)];
+
+
+}
+
+
 int main() {
-    std::ifstream ifs("../LowBeam.ies");
+    std::ifstream ifs("test.txt");
     std::string line;
     std::vector<double> stock;
     IES ies;
@@ -80,7 +109,7 @@ int main() {
         return -1;
     }
 
-    int i, cnt;
+    int i;
 
 
     //  read line by line
@@ -109,17 +138,17 @@ int main() {
     }
 
 
-    //  tmp
-
     double v, h;
     std::cout << "vertical_angle: ";
     std::cin >> v;
     std::cout << "horizontal_angle: ";
     std::cin >> h;
 
-    std::cout << vh_cd_map[std::make_pair(v, h)];
-
-    //  end
+    if (vh_cd_map.count(std::make_pair(v, h)) != 0){
+        std::cout << vh_cd_map[std::make_pair(v, h)];
+    } else {
+        interpolation(ies, vh_cd_map, v, h);
+    }
 
 
     return 0;

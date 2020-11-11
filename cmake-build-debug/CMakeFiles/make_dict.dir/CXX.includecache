@@ -6,13 +6,13 @@
 
 #IncludeRegexTransform: 
 
-C:/Users/toshi/Local_Document/C++/load_ies/main.cpp
+C:/Users/toshi/Local_Document/C++/Load-IES/main.cpp
 iostream
 -
 vector
 -
 fstream
-C:/Users/toshi/Local_Document/C++/load_ies/fstream
+C:/Users/toshi/Local_Document/C++/Load-IES/fstream
 map
-C:/Users/toshi/Local_Document/C++/load_ies/map
+C:/Users/toshi/Local_Document/C++/Load-IES/map
 
