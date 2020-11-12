@@ -2,6 +2,7 @@
 #include <vector>
 #include "fstream"
 #include "map"
+#include "algorithm"
 
 
 struct IES{
@@ -72,7 +73,6 @@ void config(IES *ies, std::vector<double> stock){
 int get_adjacent(const std::vector<double> &vec, double d){
     for (int i = 0; i < vec.size()-1; ++i) {
         if ((vec.at(i) - d) * (vec.at(i+1) - d) < 0){
-            std::cout << "i = ";
             return i;
         }
     }
@@ -80,20 +80,81 @@ int get_adjacent(const std::vector<double> &vec, double d){
 }
 
 
-double interpolation(IES &ies, std::map<std::pair<double, double>, double> &vh_cd_map, double v, double h){
+double interpolation(IES &ies, std::map<std::pair<double, double>, double> &vh_cd_map, double v, double h, int mode){
     int v_adjacent = get_adjacent(ies.vertical_angle, v);
     int h_adjacent = get_adjacent(ies.horizontal_angle, h);
 
-    if (v_adjacent == -1 || h_adjacent == -1){
-        std::cerr << "Out of range";
-        return -1;
+    //  h in ies.horizontal_angle
+    if (mode == 0){
+        if (v_adjacent == -1){
+            std::cerr << "Out of range";
+            std::exit(-1);
+        }
+
+        double fst = vh_cd_map[std::make_pair(ies.vertical_angle.at(v_adjacent), h)];
+        double snd = vh_cd_map[std::make_pair(ies.vertical_angle.at(v_adjacent + 1), h)];
+
+        return (snd - fst) / (ies.vertical_angle.at(v_adjacent+1) - ies.vertical_angle.at(v_adjacent)) * (v - ies.vertical_angle.at(v_adjacent)) + fst;
     }
 
-    double fst = vh_cd_map[std::make_pair(v_adjacent, h_adjacent)];
-    double snd = vh_cd_map[std::make_pair(v_adjacent + 1, h_adjacent)];
-    double thd = vh_cd_map[std::make_pair(v, h_adjacent + 1)];
-    double fou = vh_cd_map[std::make_pair(v_adjacent + 1, h_adjacent + 1)];
+    //  v in ies.vertical_angle
+    else if (mode == 1){
+        if (h_adjacent == -1){
+            std::cerr << "Out of range";
+            std::exit(-1);
+        }
 
+        double fst = vh_cd_map[std::make_pair(v, ies.horizontal_angle.at(h_adjacent))];
+        double snd = vh_cd_map[std::make_pair(v, ies.horizontal_angle.at(h_adjacent + 1))];
+
+        return (snd - fst) / (ies.horizontal_angle.at(h_adjacent+1) - ies.horizontal_angle.at(h_adjacent)) * (h - ies.horizontal_angle.at(h_adjacent)) + fst;
+    }
+    else {
+        if (v_adjacent == -1 || h_adjacent == -1){
+            std::cerr << "Out of range";
+            std::exit(-1);
+        }
+
+        double fst = vh_cd_map[std::make_pair(ies.vertical_angle.at(v_adjacent), ies.horizontal_angle.at(h_adjacent))];
+        double snd = vh_cd_map[std::make_pair(ies.vertical_angle.at(v_adjacent + 1), ies.horizontal_angle.at(h_adjacent))];
+        double thd = vh_cd_map[std::make_pair(ies.vertical_angle.at(v_adjacent), ies.horizontal_angle.at(h_adjacent + 1))];
+        double fth = vh_cd_map[std::make_pair(ies.vertical_angle.at(v_adjacent), ies.horizontal_angle.at(h_adjacent + 1))];
+
+        double fst_to_snd[3] = {
+                ies.vertical_angle.at(v_adjacent + 1) - ies.vertical_angle.at(v_adjacent),
+                0.,
+                snd - fst
+        };
+
+        double fst_to_thd[3] = {
+                0.,
+                ies.horizontal_angle.at(h_adjacent + 1) - ies.horizontal_angle.at(h_adjacent),
+                thd - fst
+        };
+
+
+        double rel_v = v - ies.vertical_angle.at(v_adjacent);
+        double rel_h = h - ies.horizontal_angle.at(h_adjacent);
+
+        if (rel_v / fst_to_snd[0] < 0.5 || rel_h / fst_to_thd[1] < 0.5){
+            double fth_to_snd[3] = {
+                    0.,
+                    ies.horizontal_angle.at(h_adjacent + 1) - ies.horizontal_angle.at(h_adjacent),
+                    fth - snd
+            };
+            double fth_to_thd[3] = {
+                    ies.vertical_angle.at(v_adjacent + 1) - ies.vertical_angle.at(v_adjacent),
+                    0.,
+                    fth - thd
+            };
+            std::cout << "fth : ";
+
+            return -fth_to_snd[2] * rel_v / fth_to_snd[1] - fth_to_thd[2] * rel_h / fth_to_thd[1] + fth;
+
+        }
+
+        return fst_to_snd[2] * rel_v / fst_to_snd[0] + fst_to_thd[2] * rel_h / fst_to_thd[1] + fst;
+    }
 
 }
 
@@ -110,7 +171,6 @@ int main() {
     }
 
     int i;
-
 
     //  read line by line
     while (std::getline(ifs, line)){
@@ -146,10 +206,13 @@ int main() {
 
     if (vh_cd_map.count(std::make_pair(v, h)) != 0){
         std::cout << vh_cd_map[std::make_pair(v, h)];
+    } else if (ies.vertical_angle.end() != std::find(ies.vertical_angle.begin(), ies.vertical_angle.end(), v)){
+        std::cout << interpolation(ies, vh_cd_map, v, h, 1);
+    } else if (ies.horizontal_angle.end() != std::find(ies.horizontal_angle.begin(), ies.horizontal_angle.end(), h)){
+        std::cout << interpolation(ies, vh_cd_map, v, h, 0);
     } else {
-        interpolation(ies, vh_cd_map, v, h);
+        std::cout << interpolation(ies, vh_cd_map, v, h, 2);
     }
-
 
     return 0;
 }
