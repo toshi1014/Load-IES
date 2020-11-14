@@ -118,7 +118,7 @@ double interpolation(IES &ies, std::map<std::pair<double, double>, double> &vh_c
         double fst = vh_cd_map[std::make_pair(ies.vertical_angle.at(v_adjacent), ies.horizontal_angle.at(h_adjacent))];
         double snd = vh_cd_map[std::make_pair(ies.vertical_angle.at(v_adjacent + 1), ies.horizontal_angle.at(h_adjacent))];
         double thd = vh_cd_map[std::make_pair(ies.vertical_angle.at(v_adjacent), ies.horizontal_angle.at(h_adjacent + 1))];
-        double fth = vh_cd_map[std::make_pair(ies.vertical_angle.at(v_adjacent), ies.horizontal_angle.at(h_adjacent + 1))];
+        double fth = vh_cd_map[std::make_pair(ies.vertical_angle.at(v_adjacent + 1), ies.horizontal_angle.at(h_adjacent + 1))];
 
         double fst_to_snd[3] = {
                 ies.vertical_angle.at(v_adjacent + 1) - ies.vertical_angle.at(v_adjacent),
@@ -136,26 +136,25 @@ double interpolation(IES &ies, std::map<std::pair<double, double>, double> &vh_c
         double rel_v = v - ies.vertical_angle.at(v_adjacent);
         double rel_h = h - ies.horizontal_angle.at(h_adjacent);
 
-        if (rel_v / fst_to_snd[0] < 0.5 || rel_h / fst_to_thd[1] < 0.5){
+        if (rel_v / fst_to_snd[0] + rel_h / fst_to_thd[1] > 1.){
             double fth_to_snd[3] = {
                     0.,
-                    ies.horizontal_angle.at(h_adjacent + 1) - ies.horizontal_angle.at(h_adjacent),
-                    fth - snd
+                    ies.horizontal_angle.at(h_adjacent) - ies.horizontal_angle.at(h_adjacent + 1) ,
+                    snd - fth
             };
             double fth_to_thd[3] = {
-                    ies.vertical_angle.at(v_adjacent + 1) - ies.vertical_angle.at(v_adjacent),
+                    ies.vertical_angle.at(v_adjacent) - ies.vertical_angle.at(v_adjacent + 1),
                     0.,
-                    fth - thd
+                    thd - fth
             };
-            std::cout << "fth : ";
+            //std::cout << "a :" << fth_to_snd[2] * (fth_to_snd[1] + rel_h) / fth_to_snd[1] << std::endl;
+            //std::cout << "b :" << fth_to_thd[2] * (fth_to_thd[0] + rel_v) / fth_to_thd[0] << "\n";
 
-            return -fth_to_snd[2] * rel_v / fth_to_snd[1] - fth_to_thd[2] * rel_h / fth_to_thd[1] + fth;
-
+            return fth_to_snd[2] * (fth_to_snd[1] + rel_h) / fth_to_snd[1] + fth_to_thd[2] * (fth_to_thd[0] + rel_v) / fth_to_thd[0] + fth;
         }
 
         return fst_to_snd[2] * rel_v / fst_to_snd[0] + fst_to_thd[2] * rel_h / fst_to_thd[1] + fst;
     }
-
 }
 
 
@@ -197,22 +196,39 @@ int main() {
         }
     }
 
-
+    /*
     double v, h;
     std::cout << "vertical_angle: ";
     std::cin >> v;
     std::cout << "horizontal_angle: ";
     std::cin >> h;
+    */
 
-    if (vh_cd_map.count(std::make_pair(v, h)) != 0){
-        std::cout << vh_cd_map[std::make_pair(v, h)];
-    } else if (ies.vertical_angle.end() != std::find(ies.vertical_angle.begin(), ies.vertical_angle.end(), v)){
-        std::cout << interpolation(ies, vh_cd_map, v, h, 1);
-    } else if (ies.horizontal_angle.end() != std::find(ies.horizontal_angle.begin(), ies.horizontal_angle.end(), h)){
-        std::cout << interpolation(ies, vh_cd_map, v, h, 0);
-    } else {
-        std::cout << interpolation(ies, vh_cd_map, v, h, 2);
+    //test
+    for (int j = 0; j <= 10; ++j) {
+        for (int k = 0; k <= 20; ++k) {
+            double v = k / 10.;
+            double h = j / 10.;
+
+            std::cout << "v : " << v << "\th : " << h << "\tcd : ";
+
+            //  exe
+            if (vh_cd_map.count(std::make_pair(v, h)) != 0) {
+                std::cout << vh_cd_map[std::make_pair(v, h)];
+            } else if (ies.vertical_angle.end() != std::find(ies.vertical_angle.begin(), ies.vertical_angle.end(), v)) {
+                std::cout << interpolation(ies, vh_cd_map, v, h, 1);
+            } else if (ies.horizontal_angle.end() !=
+                       std::find(ies.horizontal_angle.begin(), ies.horizontal_angle.end(), h)) {
+                std::cout << interpolation(ies, vh_cd_map, v, h, 0);
+            } else {
+                std::cout << interpolation(ies, vh_cd_map, v, h, 2);
+            }
+            //  end
+
+            std::cout << std::endl;
+        }
     }
 
+    
     return 0;
 }
