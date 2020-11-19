@@ -143,11 +143,7 @@ int main() {
         return -1;
     }
 
-<<<<<<< HEAD
-    int i;
-=======
     bool found;
->>>>>>> bilinear
 
     //  read line by line
     while (std::getline(ifs, line)){
